@@ -8,6 +8,8 @@ var openshift_host = null;
 if( process.env.OPENSHIFT_NODEJS_IP != null && process.env.OPENSHIFT_NODEJS_PORT != null)
     openshift_host = (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT);
 
+console.log('Openshift ip port: ' + (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT));
+
 var listenOn = openshift_host || argv.l || process.env.l;
 
 if(listenOn != null)
