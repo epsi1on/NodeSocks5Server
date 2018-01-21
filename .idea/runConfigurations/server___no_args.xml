@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="server - no args" type="NodeJSConfigurationType" factoryName="Node.js" path-to-js-file="bin/socksserver.js" working-dir="$PROJECT_DIR$">
+    <envs>
+      <env name="DEBUG" value="SocksServer2:*" />
+    </envs>
+    <EXTENSION ID="com.jetbrains.nodejs.run.NodeJSStartBrowserRunConfigurationExtension">
+      <browser url="http://localhost:3000/" />
+    </EXTENSION>
+    <method />
+  </configuration>
+</component>
