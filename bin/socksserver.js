@@ -3,7 +3,12 @@ var addrRegex = /^(([a-zA-Z\-\.0-9]+):)?(\d+)$/;
 
 var argv = require('minimist')(process.argv.slice(2));
 
-var listenOn = argv.l||process.env.l;
+var openshift_host = null;
+
+if( process.env.OPENSHIFT_NODEJS_IP != null && process.env.OPENSHIFT_NODEJS_PORT != null)
+    openshift_host = (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT);
+
+var listenOn = openshift_host || argv.l || process.env.l;
 
 if(listenOn != null)
     listenOn = listenOn.match(addrRegex);
