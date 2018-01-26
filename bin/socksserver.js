@@ -1,19 +1,27 @@
 
 var addrRegex = /^(([a-zA-Z\-\.0-9]+):)?(\d+)$/;
 
-var argv = require('minimist')(process.argv.slice(2));
+//var argv = require('minimist')(process.argv.slice(2));
 
-var openshift_host = null;
+//var openshift_host = null;
 
-if( process.env.OPENSHIFT_NODEJS_IP != null && process.env.OPENSHIFT_NODEJS_PORT != null)
-    openshift_host = (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT);
+var port = process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080;
 
-console.log('Openshift ip port: ' + (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT));
+var ip = process.env.IP || process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
 
-var listenOn = openshift_host || argv.l || process.env.l;
 
-if(listenOn != null)
-    listenOn = listenOn.match(addrRegex);
+//if( process.env.OPENSHIFT_NODEJS_IP != null && process.env.OPENSHIFT_NODEJS_PORT != null)
+//    openshift_host = (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT);
+
+//console.log('Openshift ip port: ' + (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT));
+
+//var listenOn = openshift_host || argv.l || process.env.l;
+
+//if(listenOn != null)
+//    listenOn = listenOn.match(addrRegex);
+
+var listenOn = ip.toString() + ':' + port.toString();
+
 
 if(listenOn == null )
 {
@@ -42,14 +50,14 @@ if(listenOn == null )
 }
 else
 {
-    console.log('listening on: ' + listenOn[0]);
+    console.log('listening on: ' + listenOn);
     console.log('socks server started successfully ...');
 
 
     var options = {
         ListenOn:{
-            Host:listenOn[2],
-            Port:listenOn[3]
+            Host:ip,
+            Port:port
         }
     }
 
@@ -81,10 +89,18 @@ else
         });
     });
 
-    server.listen(options.ListenOn.Port,options.ListenOn.Host);
+    var res = server.listen(options.ListenOn.Port,options.ListenOn.Host);
+
+    server.on('error',function (e) {console.log(e);});
 
     process.on('uncaughtException', function (err) {
         //console.log(err);
     })
 
 }
+
+app.listen(port, ip);
+
+console.log('Server running on http://%s:%s', ip, port);
+
+module.exports = app ;
