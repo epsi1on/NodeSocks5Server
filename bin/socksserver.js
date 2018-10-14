@@ -99,18 +99,20 @@ else
         });
     });
 
+
     var res = server.listen(options.ListenOn.Port,options.ListenOn.Host);
+
 
     server.on('error',function (e) {console.log(e);});
 
     process.on('uncaughtException', function (err) {
-        //console.log(err);
+        console.log(err);
     })
 
 }
 
-app.listen(port, ip);
+//app.listen(port, ip);
 
 console.log('Server running on http://%s:%s', ip, port);
 
-module.exports = app ;
+//module.exports = app ;
