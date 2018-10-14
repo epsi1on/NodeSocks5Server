@@ -77,24 +77,28 @@ else
 
     const server = socks.createServer(function(client){
         var address = client.address;
-        net.connect(address.port, address.address, function(err) {
-            client.reply(0);
-            client.pipe(this).pipe(client);
 
-            client.on('end', function () {
-                this.end()
-            });
-            client.on('error', function () {
-                this.end();
-            });
+        if(address == null)
+            console.log("Null adress");
+        else
+            net.connect(address.port, address.address, function(err) {
+                client.reply(0);
+                client.pipe(this).pipe(client);
+
+                client.on('end', function () {
+                    this.end()
+                });
+                client.on('error', function () {
+                    this.end();
+                });
 
 
-            this.on('end', function () {
-                client.end()
-            });
-            this.on('error', function () {
-                client.end();
-            });
+                this.on('end', function () {
+                    client.end()
+                });
+                this.on('error', function () {
+                    client.end();
+                });
 
         });
     });
