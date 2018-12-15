@@ -1,0 +1,10 @@
+{
+    "socks": {
+        "listenOn": "127.0.0.1:9150"
+    },
+
+    "cpanel": {
+       "secretDoubleMd5":"74be16979710d4c4e7c6647856088456",
+	   "port":""
+    }
+}

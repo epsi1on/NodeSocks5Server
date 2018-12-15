@@ -3,34 +3,29 @@ var addrRegex = /^([a-zA-Z\-\.0-9]+)?:(\d+)$/;
 
 var argv = require('minimist')(process.argv.slice(2));
 
-//var openshift_host = null;
+var connectionLog = {};
 
-//
+function formatBytes(bytes,decimals) {
+   if(bytes == 0) return '0 Bytes';
+   var k = 1024,
+       dm = decimals <= 0 ? 0 : decimals || 2,
+       sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+       i = Math.floor(Math.log(bytes) / Math.log(k));
+   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
 
+var json_data = JSON.parse(require('fs').readFileSync('conf.json'));
 
-//if( process.env.OPENSHIFT_NODEJS_IP != null && process.env.OPENSHIFT_NODEJS_PORT != null)
-//    openshift_host = (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT);
-
-//console.log('Openshift ip port: ' + (process.env.OPENSHIFT_NODEJS_IP+':'+process.env.OPENSHIFT_NODEJS_PORT));
-
-var listenOn = argv.l || process.env.l;
+var listenOn = argv.l || process.env.l || json_data.socks.listenOn;
 
 if(!addrRegex.test(listenOn))
 {
-
-    console.log('invalid address: '+listenOn);
-    process.exit(1);
+	listenOn = null;
 }
 
 var port = listenOn.match(addrRegex)[2];// process.env.PORT || process.env.OPENSHIFT_NODEJS_PORT || 8080;
 
 var ip = listenOn.match(addrRegex)[1];//process.env.IP || process.env.OPENSHIFT_NODEJS_IP || OPENSHIFT_DIY_IP || '0.0.0.0';
-
-//if(listenOn != null)
-//    listenOn = listenOn.match(addrRegex);
-
-
-//var listenOn = ip.toString() + ':' + port.toString();
 
 
 if(listenOn == null )
@@ -77,16 +72,31 @@ else
 
     const server = socks.createServer(function(client){
         var address = client.address;
-
+        //console.log(client.user );
+		
         if(address == null)
-            console.log("Null adress");
+            console.log("Null Adress");
         else
             net.connect(address.port, address.address, function(err) {
                 client.reply(0);
                 client.pipe(this).pipe(client);
+				
+				client.on('data', function (chunk) {
+                    if(connectionLog[client.remoteAddress])
+						connectionLog[client.remoteAddress] += chunk.length;
+					else
+						connectionLog[client.remoteAddress] = chunk.length;
+                });
+				
+				this.on('data', function (chunk) {
+                    if(connectionLog[client.remoteAddress])
+						connectionLog[client.remoteAddress] += chunk.length;
+					else
+						connectionLog[client.remoteAddress] = chunk.length;
+                });
 
                 client.on('end', function () {
-                    this.end()
+                    this.end();
                 });
                 client.on('error', function () {
                     this.end();
@@ -94,19 +104,59 @@ else
 
 
                 this.on('end', function () {
-                    client.end()
+                    client.end();
                 });
                 this.on('error', function () {
                     client.end();
                 });
-
             });
     });
 
-
     var res = server.listen(options.ListenOn.Port,options.ListenOn.Host);
 
+	var http = require('http');
+    var url = require('url');
+	
+	if(json_data.cpanel.port)
+	{
+		http.createServer(function (req, res) {
+	  var queryData = url.parse(req.url, true).query;
+	  var authorized = false;
+	  var sentSec = '';
+	  
+	  if(queryData.secret)
+		  sentSec = queryData.secret;
+	  
+	  var h1 = require('crypto').createHash('md5').update(sentSec).digest('hex');
+	  var h2 = require('crypto').createHash('md5').update(h1).digest('hex');
+		  
+	  authorized  = (h2 == json_data.cpanel.secretDoubleMd5);
+	  
+	  if(authorized)
+	  {
+		  res.write('<html> Bandwidth Usage by IP: </br>');
+		  
+		  for (var k in connectionLog){
+				if (connectionLog.hasOwnProperty(k)) {
+					
+					res.write('<p>'+k+':'+formatBytes(connectionLog[k],2));
+					//alert("Key is " + k + ", value is" + target[k]);
+				}
+			}
+		res.write('</html>');
+	  }
+	  else
+	  {
+		  res.write('<html><h1>404 not found!!!</h1></html>'); //write a response to the client
+	  }
+	  
+	  res.end(); //end the response
+	}).listen(json_data.cpanel.port); //the server object listens on port 80
 
+	
+	}
+	//create a server object:
+	
     server.on('error',function (e) {console.log(e);});
 
     process.on('uncaughtException', function (err) {
