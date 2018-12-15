@@ -60,8 +60,8 @@ if(listenOn == null )
 }
 else
 {
-    console.log('listening on: ' + listenOn);
-    console.log('socks server started successfully ...');
+    console.log('Node Socks Server Listening on: ' + listenOn);
+    console.log('Node Socks Server Started Successfully ...');
 
 
     var options = {
@@ -112,11 +112,16 @@ else
     process.on('uncaughtException', function (err) {
         console.log(err);
     })
+	
+	process.on('SIGINT', function() {
+        console.log("Caught interrupt signal");
+        process.exit();
+    });
 
 }
 
 //app.listen(port, ip);
 
-console.log('Socks Server running on %s:%s', ip, port);
+//console.log('Socks Server running on %s:%s', ip, port);
 
 //module.exports = app ;
