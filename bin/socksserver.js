@@ -14,7 +14,7 @@ function formatBytes(bytes,decimals) {
    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
-var json_data = JSON.parse(require('fs').readFileSync('conf.json'));
+var json_data = JSON.parse(require('fs').readFileSync(__dirname +'/conf.json'));
 
 var listenOn = argv.l || process.env.l || json_data.socks.listenOn;
 
