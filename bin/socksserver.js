@@ -83,7 +83,7 @@ else
 				
 				function closeSession() {
 					client.end();
-					this.end();
+					//this.end();
 				   client.destroy();
 				   this.destroy();
 				   ended = true;
