@@ -77,18 +77,20 @@ else
         if(address == null)
             console.log("Null Address");
         else
-            net.connect(address.port, address.address, function(err) {
+            var socket_ = net.connect(address.port, address.address, function(err) {
                 client.reply(0);
                 client.pipe(this).pipe(client);
 				
 				function closeSession() {
 					client.end();
+					socket_.end();
 					//this.end();
 				   client.destroy();
-				   this.destroy();
+				   socket_.destroy()
+				   //this.destroy();
 				   ended = true;
 				   delete client;
-				   
+				   delete socket_;
 				}
 				
 				client.on('data', function (chunk) {
