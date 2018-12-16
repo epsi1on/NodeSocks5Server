@@ -72,14 +72,24 @@ else
 
     const server = socks.createServer(function(client){
         var address = client.address;
-        //console.log(client.user );
+        var ended = false;
 		
         if(address == null)
-            console.log("Null Adress");
+            console.log("Null Address");
         else
             net.connect(address.port, address.address, function(err) {
                 client.reply(0);
                 client.pipe(this).pipe(client);
+				
+				function closeSession() {
+					client.end();
+					this.end();
+				   client.destroy();
+				   this.destroy();
+				   ended = true;
+				   delete client;
+				   
+				}
 				
 				client.on('data', function (chunk) {
                     if(connectionLog[client.remoteAddress])
@@ -96,18 +106,18 @@ else
                 });
 
                 client.on('end', function () {
-                    this.end();
+                    closeSession();
                 });
                 client.on('error', function () {
-                    this.end();
+                    closeSession();
                 });
 
 
                 this.on('end', function () {
-                    client.end();
+                    closeSession();
                 });
                 this.on('error', function () {
-                    client.end();
+                    closeSession();
                 });
             });
     });
