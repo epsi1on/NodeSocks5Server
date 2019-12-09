@@ -7,10 +7,12 @@
     "start": "node ./bin/socksserver.js"
   },
   "dependencies": {
-    "minimist": "~1.2.0",
+    "fnmatch": "^1.0.0",
+    "line-reader": "^0.4.0",
+    "micromatch": "^4.0.2",
+    "minimist": "^1.0.0",
     "socks-proxy": "^1.0.0"
   },
-
   "repository": {
     "type": "git",
     "url": "https://github.com/epsi1on/NodePortForwarder.git"

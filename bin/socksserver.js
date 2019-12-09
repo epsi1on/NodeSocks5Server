@@ -5,6 +5,8 @@ var argv = require('minimist')(process.argv.slice(2));
 
 var connectionLog = {};
 
+
+
 function formatBytes(bytes,decimals) {
    if(bytes == 0) return '0 Bytes';
    var k = 1024,
@@ -66,9 +68,31 @@ else
         }
     }
 
+	const lineReader = require('line-reader');
+
+	var wildcards = [];
+	
+	lineReader.eachLine('bad-hosts-wc.txt', function(line, last) {
+			var trd = line.trim();
+			
+			if(trd)
+			{
+				if(!trd.startsWith('#'))
+				{
+					wildcards.push(trd);
+					//console.log(trd);
+				}
+			}
+				
+		  });
+		
+
+    
+	
 
     const socks = require('socks-proxy');
     const net = require('net');
+	const micromatch = require('micromatch');
 
     const server = socks.createServer(function(client){
         var address = client.address;
@@ -77,51 +101,72 @@ else
         if(address == null)
             console.log("Null Address");
         else
-            var socket_ = net.connect(address.port, address.address, function(err) {
-                client.reply(0);
-                client.pipe(this).pipe(client);
+		{
+						
+				
+			var socket_ = net.connect(address.port, address.address, function(err) {
+
+				var drop = micromatch.isMatch(address.address, wildcards);
 				
 				function closeSession() {
-					client.end();
-					socket_.end();
-					//this.end();
-				   client.destroy();
-				   socket_.destroy()
-				   //this.destroy();
-				   ended = true;
-				   delete client;
-				   delete socket_;
+						client.end();
+						socket_.end();
+						//this.end();
+					   client.destroy();
+					   socket_.destroy()
+					   //this.destroy();
+					   ended = true;
+					   delete client;
+					   delete socket_;
+					}
+					
+				if(drop)
+				{
+					//console.log('dropping '+address.address);
+					
+					client.reply(2);//connection not allowed by ruleset
+					
+					closeSession();
+					
+				}
+				else
+				{
+					client.reply(0);
+					client.pipe(this).pipe(client);
+					
+					client.on('data', function (chunk) {
+						if(connectionLog[client.remoteAddress])
+							connectionLog[client.remoteAddress] += chunk.length;
+						else
+							connectionLog[client.remoteAddress] = chunk.length;
+					});
+					
+					this.on('data', function (chunk) {
+						if(connectionLog[client.remoteAddress])
+							connectionLog[client.remoteAddress] += chunk.length;
+						else
+							connectionLog[client.remoteAddress] = chunk.length;
+					});
+
+					client.on('end', function () {
+						closeSession();
+					});
+					client.on('error', function () {
+						closeSession();
+					});
+
+
+					this.on('end', function () {
+						closeSession();
+					});
+					this.on('error', function () {
+						closeSession();
+					});
 				}
 				
-				client.on('data', function (chunk) {
-                    if(connectionLog[client.remoteAddress])
-						connectionLog[client.remoteAddress] += chunk.length;
-					else
-						connectionLog[client.remoteAddress] = chunk.length;
-                });
-				
-				this.on('data', function (chunk) {
-                    if(connectionLog[client.remoteAddress])
-						connectionLog[client.remoteAddress] += chunk.length;
-					else
-						connectionLog[client.remoteAddress] = chunk.length;
-                });
-
-                client.on('end', function () {
-                    closeSession();
-                });
-                client.on('error', function () {
-                    closeSession();
-                });
-
-
-                this.on('end', function () {
-                    closeSession();
-                });
-                this.on('error', function () {
-                    closeSession();
-                });
+                
             });
+		}
     });
 
     var res = server.listen(options.ListenOn.Port,options.ListenOn.Host);
