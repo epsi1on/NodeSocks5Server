@@ -9,7 +9,7 @@
   "dependencies": {
     "fnmatch": "^1.0.0",
     "line-reader": "^0.4.0",
-    "micromatch": "^4.0.2",
+    "micromatch": "^4.0.8",
     "minimist": "^1.2.2",
     "socks-proxy": "^1.0.0"
   },
